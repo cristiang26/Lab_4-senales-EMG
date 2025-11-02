@@ -11,6 +11,9 @@ import pandas as pd
 ```
 
 **PARTE A**
+Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
+
+
 - CAPTURA DE SEÑAL DEL GENERADOR
   
 Este código carga una señal electromiográfica (EMG) desde un archivo de texto y la representa gráficamente en función del tiempo. Primero define la frecuencia de muestreo (`fN = 100 Hz`) y calcula el vector de tiempo correspondiente. Luego, usa **Matplotlib** para trazar la señal medida (en milivoltios) durante los primeros 5 segundos, mostrando así cómo varía la actividad eléctrica del músculo a lo largo del tiempo.
@@ -34,6 +37,7 @@ plt.title("Señal capturada")
 plt.grid(True)
 plt.show()
 ```
+<img width="1077" height="587" alt="image" src="https://github.com/user-attachments/assets/826ef7b7-8517-4c02-89b2-6cdddfb90837" />
 
 - SEGMENTACIÓN DE LA SEÑAL
 
@@ -66,6 +70,7 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="1075" height="580" alt="image" src="https://github.com/user-attachments/assets/1f79a203-151d-42e6-8801-e5586cd001a6" />
 
 - FRECUENCIA MEDIA Y MEDIANA
 
@@ -129,8 +134,13 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="271" height="325" alt="image" src="https://github.com/user-attachments/assets/470009fe-681c-4522-808c-750e39b26de8" />
+
+<img width="860" height="583" alt="image" src="https://github.com/user-attachments/assets/645055e0-ef07-4eb1-9a4f-e1b11276ea6a" />
 
 **PARTE B**
+
+Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
 ![IMG-20251102-WA0054 1](https://github.com/user-attachments/assets/5e0efce4-f410-4ef3-9ca6-fc07d1642994)
 
 Este código carga y visualiza una señal electromiográfica (EMG) real proveniente de un archivo de texto. Primero, verifica la estructura del archivo para determinar si contiene dos columnas (tiempo y amplitud) o solo una (señal). En caso de tener una sola columna, el vector de tiempo se genera artificialmente usando una frecuencia de muestreo de 1000 Hz.
@@ -167,6 +177,8 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="1047" height="515" alt="image" src="https://github.com/user-attachments/assets/b7594088-ef9e-4651-88b7-0397b193b9cb" />
+
 - FILTRO (20 - 450 HZ)
 
   Este código carga una señal electromiográfica (EMG), calcula su frecuencia de muestreo y aplica un filtro pasa banda Butterworth (20–450 Hz) para eliminar ruido de baja y alta frecuencia, conservando solo las componentes útiles del músculo. Se muestra la respuesta en frecuencia del filtro y luego se comparan las señales original y filtrada, evidenciando cómo el filtrado mejora la calidad del registro y resalta la actividad muscular real.
@@ -237,6 +249,11 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="877" height="500" alt="image" src="https://github.com/user-attachments/assets/b5ec0767-510a-48f7-9f00-1564ce383db3" />
+
+<img width="1246" height="570" alt="image" src="https://github.com/user-attachments/assets/c322e4ae-68f3-403a-bb68-63413abc05ef" />
+
+
 - SEGMENTOS DE LAS CONTRACCIONES
 
   Este código se encarga de **detectar y segmentar las contracciones musculares** presentes en una señal electromiográfica (EMG) previamente filtrada.
@@ -287,6 +304,7 @@ for p in peaks:
 
 print(f"Se detectaron {len(peaks)} contracciones en la señal.")
 ```
+<img width="1272" height="652" alt="image" src="https://github.com/user-attachments/assets/f225d47a-5643-4888-ad00-f71dcbadea36" />
 
 - MEDIANA Y MEDIA DE LAS CONTRACCIONES CON SUS EVOLUCIONES
 
@@ -398,7 +416,17 @@ plt.show()
 for i, (fm, fmed) in enumerate(zip(frecuencia_media, frecuencia_mediana)):
     print(f"Contracción {i+1}: f_media = {fm:.2f} Hz | f_mediana = {fmed:.2f} Hz")
 ```
+<img width="425" height="647" alt="image" src="https://github.com/user-attachments/assets/e622e58a-73b6-4e16-8168-806b3952b993" />
+<img width="425" height="410" alt="image" src="https://github.com/user-attachments/assets/dc4930c0-1862-469f-93be-bfd95cd9502c" />
+
+<img width="660" height="386" alt="image" src="https://github.com/user-attachments/assets/4fabc41e-f334-4198-834b-cd956c9458bc" />
+
+
+
 **PARTE C**
+
+Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
+
 - FFT con grafica de Frecuencia vs Magnitud
   
 Este código realiza el análisis espectral de las primeras contracciones musculares detectadas en una señal electromiográfica (EMG).
@@ -443,6 +471,8 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="962" height="516" alt="image" src="https://github.com/user-attachments/assets/3848d100-cce4-4a3c-97ea-bcc198fdfa7b" />
+
 - Primeras e ultimas contracciones, y reduccion de alto contenido de altas frecuencias asociada a la fatiga
 
 ```python
@@ -493,6 +523,8 @@ plt.grid(True)
 plt.show()
 
 ```
+<img width="827" height="451" alt="image" src="https://github.com/user-attachments/assets/25af0333-e507-41ae-a8dc-6ea71ecb7e5b" />
+
 ## e. Desplazamiento del pico espectral y su relación con el esfuerzo sostenido
 Cuando se comparan los espectros de las primeras contracciones (azul) con las últimas (rojo), se nota que en las últimas el pico espectral se ha movido hacia frecuencias más bajas.
 
