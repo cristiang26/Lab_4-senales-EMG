@@ -67,7 +67,7 @@ plt.show()
 
 ```
 
--FRECUENCIA MEDIA Y MEDIANA
+- FRECUENCIA MEDIA Y MEDIANA
 
 Este código realiza un **análisis espectral evolutivo** de una señal electromiográfica (EMG) con el fin de estudiar cómo varía su contenido en frecuencia a lo largo del tiempo. Primero, se divide la señal en cinco segmentos de un segundo cada uno, asumiendo una frecuencia de muestreo de 100 Hz.
 
@@ -240,9 +240,9 @@ plt.show()
 
   Este código se encarga de **detectar y segmentar las contracciones musculares** presentes en una señal electromiográfica (EMG) previamente filtrada.
 
-Primero, se **rectifica la señal** (tomando su valor absoluto) y se aplica una **media móvil de 100 ms** para obtener la **envolvente**, que refleja la variación de la amplitud muscular en el tiempo. Luego, se define un **umbral automático** equivalente al 40 % del valor máximo de esa envolvente, y se emplea la función `find_peaks` para **identificar los picos** que superan dicho umbral, los cuales corresponden a **contracciones musculares**.
+	Primero, se **rectifica la señal** (tomando su valor absoluto) y se aplica una **media móvil de 100 ms** para obtener la **envolvente**, que refleja la variación de la amplitud muscular en el tiempo. Luego, se define un **umbral automático** equivalente al 40 % del valor máximo de esa envolvente, y se emplea la función `find_peaks` para **identificar los picos** que superan dicho umbral, los cuales corresponden a **contracciones musculares**.
 
-En la gráfica resultante se muestran la señal filtrada, la envolvente suavizada, el umbral de detección y los puntos donde se detectan las contracciones. Finalmente, el código **segmenta la señal alrededor de cada pico** (1 s por contracción) para facilitar análisis posteriores, como el estudio del espectro o de la fatiga muscular.
+	En la gráfica resultante se muestran la señal filtrada, la envolvente suavizada, el umbral de detección y los puntos donde se detectan las contracciones. Finalmente, el código **segmenta la señal alrededor de cada pico** (1 s por contracción) para facilitar análisis posteriores, como el estudio del espectro o de la fatiga muscular.
 
 ```python
 import numpy as np
@@ -286,7 +286,237 @@ for p in peaks:
 
 print(f"Se detectaron {len(peaks)} contracciones en la señal.")
 ```
+
+- MEDIANA Y MEDIA DE LAS CONTRACCIONES CON SUS EVOLUCIONES
+
+  Este código realiza un análisis completo de una señal electromiográfica (EMG), desde el filtrado hasta el **cálculo de parámetros espectrales asociados a la actividad muscular.
+
+	Primero, carga los datos de la señal y determina la frecuencia de muestreo (fs). Luego, aplica un filtro pasa banda Butterworth (20–450 Hz) para eliminar el ruido de baja frecuencia (movimientos o artefactos) y las altas frecuencias no relevantes, dejando solo el contenido útil de la señal muscular.
+
+	Posteriormente, la señal filtrada se rectifica y suaviza mediante una media móvil de 100 ms para obtener su envolvente, que refleja la intensidad de las contracciones. Con un umbral adaptativo (40 % del valor máximo de la envolvente) y la función `find_peaks`, se detectan automáticamente las contracciones en la señal.
+
+	Finalmente, alrededor de cada contracción detectada se extrae un segmento (≈0.7 s) y se calcula su Transformada Rápida de Fourier (FFT). A partir del espectro obtenido, el código estima dos indicadores importantes:
+
+	Frecuencia media, que representa la energía promedio del espectro.
+Frecuencia mediana, que divide la energía total del espectro en dos mitades.
+
+	Estos parámetros permiten cuantificar los cambios en la distribución frecuencial de la señal EMG, útiles para estudiar fenómenos como la fatiga muscular o la variación en el reclutamiento de unidades motoras durante el esfuerzo.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, sosfiltfilt, find_peaks
+
+
+ruta = '/content/drive/MyDrive/Senal_lab_4_parteb.txt'
+datos = np.loadtxt(ruta)
+
+if datos.ndim == 1:
+    print("Archivo con 1 columna; ajusta 'fs' manualmente si es necesario.")
+    fs = 1000.0
+    senal = datos
+    tiempo = np.arange(len(senal)) / fs
+else:
+    tiempo = datos[:,0].astype(float)
+    senal  = datos[:,1].astype(float)
+
+    dt = np.diff(tiempo)
+    dt_med = np.median(dt)
+    fs = 1.0 / dt_med
+    print(f"Estimación de fs = {fs:.3f} Hz (dt_med = {dt_med:.6f} s)")
+
+
+lowcut = 20.0     # Hz
+highcut = 450.0   # Hz
+orden = 4
+
+fN = fs / 2.0
+if highcut >= fN:
+    print(f"Warning: highcut = {highcut} Hz >= Nyquist ({fN:.1f} Hz). Adjusting highcut to {fN*0.9:.1f} Hz.")
+    highcut = fN * 0.9
+
+sos = butter(orden, [lowcut, highcut], btype='bandpass', fs=fs, output='sos')
+senal_filtrada = sosfiltfilt(sos, senal)
+
+
+senal_rectificada = np.abs(senal_filtrada)
+ventana = int(0.1 * fs)
+envolvente = np.convolve(senal_rectificada, np.ones(ventana)/ventana, mode='same')
+
+
+umbral = 0.4 * np.max(envolvente)
+peaks, _ = find_peaks(envolvente, height=umbral, distance=fs*0.5)
+
+
+duracion_contraccion = 0.7
+ventana = int(duracion_contraccion * fs / 2)
+
+frecuencia_media = []
+frecuencia_mediana = []
+
+
+for i, p in enumerate(peaks):
+    ini = max(p - ventana, 0)
+    fin = min(p + ventana, len(senal_filtrada))
+    segmento = senal_filtrada[ini:fin]
+
+
+    fft_seg = np.fft.fft(segmento)
+    freqs = np.fft.fftfreq(len(segmento), 1/fs)
+    idx = np.where(freqs >= 0)
+    freqs = freqs[idx]
+    espectro = np.abs(fft_seg[idx])**2
+
+
+    f_media = np.sum(freqs * espectro) / np.sum(espectro)
+    frecuencia_media.append(f_media)
+
+
+    cumsum = np.cumsum(espectro)
+    if len(np.where(cumsum >= cumsum[-1]/2)[0]) > 0:
+        f_mediana = freqs[np.where(cumsum >= cumsum[-1]/2)[0][0]]
+        frecuencia_mediana.append(f_mediana)
+    else:
+        frecuencia_mediana.append(np.nan)
+
+
+
+contracciones = np.arange(1, len(peaks)+1)
+
+plt.figure(figsize=(8,4))
+plt.plot(contracciones, frecuencia_media, 'o-', label='Frecuencia media')
+plt.plot(contracciones, frecuencia_mediana, 's--', label='Frecuencia mediana')
+plt.title('Evolución de las frecuencias por contracción (fatiga muscular)')
+plt.xlabel('Número de contracción')
+plt.ylabel('Frecuencia (Hz)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+for i, (fm, fmed) in enumerate(zip(frecuencia_media, frecuencia_mediana)):
+    print(f"Contracción {i+1}: f_media = {fm:.2f} Hz | f_mediana = {fmed:.2f} Hz")
+```
+**PARTE C**
+- FFT con grafica de Frecuencia vs Magnitud
   
+Este código realiza el análisis espectral de las primeras contracciones musculares detectadas en una señal electromiográfica (EMG).
+
+Para cada una de las cinco primeras contracciones, se extrae un segmento de 0.7 segundos alrededor del pico de máxima actividad. Luego, a cada segmento se le aplica la Transformada Rápida de Fourier (FFT) para obtener su espectro de amplitud, que muestra cómo se distribuye la energía de la señal en distintas frecuencias.
+
+Finalmente, se grafican los espectros de las contracciones en una misma figura, lo que permite comparar su contenido frecuencial. Este tipo de análisis es útil para observar variaciones entre contracciones, detectar desplazamientos del pico espectral y evaluar posibles signos de fatiga muscular o cambios en el reclutamiento de fibras
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+duracion_contraccion = 0.7
+ventana = int(duracion_contraccion * fs / 2)
 
 
+plt.figure(figsize=(12, 6))
 
+for i, p in enumerate(peaks[:5]):
+    ini = max(p - ventana, 0)
+    fin = min(p + ventana, len(senal_filtrada))
+    segmento = senal_filtrada[ini:fin]
+
+
+    N = len(segmento)
+    fft_seg = np.fft.fft(segmento)
+    freqs = np.fft.fftfreq(N, 1/fs)
+
+
+    idx = np.where(freqs >= 0)
+    freqs = freqs[idx]
+    amplitud = np.abs(fft_seg[idx]) / N
+
+    plt.plot(freqs, amplitud, label=f'Contracción {i+1}')
+
+plt.title('Espectro de amplitud (FFT) por contracción muscular')
+plt.xlabel('Frecuencia [Hz]')
+plt.ylabel('Amplitud normalizada')
+plt.xlim(0, 450)
+plt.legend()
+plt.grid(True)
+plt.show()
+
+```
+- Primeras e ultimas contracciones, y reduccion de alto contenido de altas frecuencias asociada a la fatiga
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+duracion_contraccion = 0.7
+ventana = int(duracion_contraccion * fs / 2)
+
+
+primeras = peaks[:5]
+ultimas = peaks[-5:]
+
+def calcular_fft(segmento, fs):
+    N = len(segmento)
+    fft_seg = np.fft.fft(segmento)
+    freqs = np.fft.fftfreq(N, 1/fs)
+    idx = np.where(freqs >= 0)
+    freqs = freqs[idx]
+    amplitud = np.abs(fft_seg[idx]) / N
+    return freqs, amplitud
+
+def promedio_fft(indices):
+    espectros = []
+    for p in indices:
+        ini = max(p - ventana, 0)
+        fin = min(p + ventana, len(senal_filtrada))
+        seg = senal_filtrada[ini:fin]
+        f, a = calcular_fft(seg, fs)
+        espectros.append(a)
+    espectros = np.mean(espectros, axis=0)
+    return f, espectros
+
+f1, spec_primeras = promedio_fft(primeras)
+f2, spec_ultimas = promedio_fft(ultimas)
+
+
+plt.figure(figsize=(10,5))
+plt.plot(f1, spec_primeras, label='Primeras contracciones', color='blue')
+plt.plot(f2, spec_ultimas, label='Últimas contracciones', color='red')
+plt.title('Comparación de espectros: primeras vs últimas contracciones')
+plt.xlabel('Frecuencia [Hz]')
+plt.ylabel('Amplitud normalizada')
+plt.xlim(0, 500)
+plt.legend()
+plt.grid(True)
+plt.show()
+
+```
+## e. Desplazamiento del pico espectral y su relación con el esfuerzo sostenido
+Cuando se comparan los espectros de las primeras contracciones (azul) con las últimas (rojo), se nota que en las últimas el pico espectral se ha movido hacia frecuencias más bajas.
+
+El impacto de la fatiga muscular durante un esfuerzo sostenido se manifiesta en este fenómeno.
+En condiciones iniciales, la frecuencia media de descarga es más alta en las unidades motoras reclutadas, y los potenciales de acción se conducen con mayor rapidez. Esto se manifiesta como un pico espectral en frecuencias más elevadas (por ejemplo, entre 80 y 120 Hz).
+Conforme el músculo se va cansando:
+
+La velocidad de conducción de las fibras musculares se reduce,la frecuencia media del espectro disminuye,
+
+Y el pico principal se mueve hacia frecuencias más bajas, como las que van de 60 a 90 Hz.
+
+En términos fisiológicos, este desplazamiento es un indicador claro del agotamiento metabólico y del reclutamiento compensatorio de fibras más lentas (tipo I).
+El desplazamiento del pico espectral hacia frecuencias bajas con el tiempo o con contracciones sucesivas confirma la aparición de fatiga muscular durante el esfuerzo sostenido.
+
+## f. Conclusiones sobre el uso del análisis espectral como herramienta diagnóstica en electromiografía
+El análisis espectral de las señales EMG es un instrumento eficaz para evaluar el comportamiento de los músculos, dado que posibilita la obtención de información acerca del estado fisiológico de las fibras activas sin requerir procedimientos invasivos.
+
+Entre sus beneficios diagnósticos más importantes se encuentran:
+
+Detección de la fatiga muscular: La reducción del pico espectral o de la frecuencia media del espectro posibilita medir la fatiga local.
+
+El reclutamiento neuromuscular se evalúa mediante la observación de cambios en la distribución espectral, que indican alteraciones en el tipo de fibras que son reclutadas.
+
+Control clínico o deportivo: tiene la posibilidad de ser empleado para examinar cómo responden los músculos ante la rehabilitación, el entrenamiento o las afecciones neuromusculares.
+
+Suplemento del análisis temporal: a diferencia del análisis en el dominio temporal, que revela la duración o amplitud de la señal, el espectral aporta información sobre el contenido en frecuencia y su evolución.
+
+El análisis espectral en electromiografía constituye una herramienta diagnóstica no invasiva, objetiva y sensible para detectar cambios asociados a la fatiga muscular, disfunciones neuromusculares y adaptaciones al entrenamiento, aportando información complementaria al análisis temporal clásico.
