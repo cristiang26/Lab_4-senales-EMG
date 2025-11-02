@@ -12,7 +12,9 @@ import pandas as pd
 
 **PARTE A**
 
-Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
+Se muestra a continuación el diagrama de flujo respectivo para esta parte:  
+
+<img width="845" height="2587" alt="image" src="https://github.com/user-attachments/assets/de9a2522-45d0-4cce-9519-f1528c6135b7" />
 
 
 - CAPTURA DE SEÑAL DEL GENERADOR
