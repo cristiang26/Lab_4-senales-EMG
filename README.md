@@ -131,6 +131,7 @@ plt.show()
 ```
 
 **PARTE B**
+![IMG-20251102-WA0054 1](https://github.com/user-attachments/assets/5e0efce4-f410-4ef3-9ca6-fc07d1642994)
 
 Este código carga y visualiza una señal electromiográfica (EMG) real proveniente de un archivo de texto. Primero, verifica la estructura del archivo para determinar si contiene dos columnas (tiempo y amplitud) o solo una (señal). En caso de tener una sola columna, el vector de tiempo se genera artificialmente usando una frecuencia de muestreo de 1000 Hz.
 
