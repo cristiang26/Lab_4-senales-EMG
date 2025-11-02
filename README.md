@@ -11,6 +11,7 @@ import pandas as pd
 ```
 
 **PARTE A**
+
 Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
 
 
