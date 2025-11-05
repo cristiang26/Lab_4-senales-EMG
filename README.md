@@ -429,6 +429,8 @@ for i, (fm, fmed) in enumerate(zip(frecuencia_media, frecuencia_mediana)):
 **PARTE C**
 
 Se muestra a continuación el diagrama de flujo respectivo para esta parte: 
+
+
 <img width="470" height="770" alt="image" src="https://github.com/user-attachments/assets/82acfec2-4f3e-44a3-91a2-08ec85f440b8" />
 <img width="442" height="606" alt="image" src="https://github.com/user-attachments/assets/484c6254-1d8a-46ad-86f2-e96928db756b" />
 
